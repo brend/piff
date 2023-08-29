@@ -38,9 +38,9 @@ struct piff: ParsableCommand {
         let diff = diff(leftLines, rightLines)
         
         if normal {
-            let grouped = GroupedUnifiedDiff(diff)
+            let normalDiff = NormalDiff(diff)
             
-            print("ok \(grouped)")
+            print(" \(normalDiff)")
         } else {
             print("\(diff)")
         }

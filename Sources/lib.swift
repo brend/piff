@@ -200,27 +200,64 @@ struct GroupedUnifiedDiff {
     }
 }
 
-struct Patcho {
-    enum Change {
-        case add(Int, Range<Int>)
-        case delete(Range<Int>, Int)
-        case change(Range<Int>, Range<Int>)
+struct NormalDiff: CustomDebugStringConvertible {
+    enum Change: CustomDebugStringConvertible {
+        case add(Int, Range<Int>, [String])
+        case rem(Range<Int>, Int, [String])
+        //case change(Range<Int>, Range<Int>)
+        
+        var debugDescription: String {
+            switch self {
+            case let .add(i, r, lines):
+                return "\(i)a\(r.lowerBound),\(r.upperBound)\n\(lines.map {"> \($0)"}.joined(separator: "\n"))"
+            case let .rem(r, j, lines):
+                return "\(r.lowerBound),\(r.upperBound)d\(j)\n\(lines.map {"< \($0)"}.joined(separator: "\n"))"
+            }
+        }
     }
     
     let changes: [Change]
     
-    init(patchy: UnifiedDiff) {
-        self.changes = Self.computeChanges(patchy)
+    init(_ diff: GroupedUnifiedDiff) {
+        self.changes = Self.computeChanges(diff)
     }
     
-    static func computeChanges(_ patchy: UnifiedDiff) -> [Change] {
+    init(_ diff: UnifiedDiff) {
+        self.init(GroupedUnifiedDiff(diff))
+    }
+    
+    init(_ x: [String], _ y: [String]) {
+        self.init(diff(x, y))
+    }
+    
+    init(_ x: URL, _ y: URL) throws {
+        try self.init(lines(x.path), lines(y.path))
+    }
+    
+    static func computeChanges(_ patchy: GroupedUnifiedDiff) -> [Change] {
         var changes: [Change] = []
         var i = 0
         var j = 0
 
-        
+        for change in patchy.changes {
+            switch change {
+            case .add(let lines):
+                changes.append(.add(i, (j+1)..<(j + lines.count), lines))
+                j += lines.count
+            case .rem(let lines):
+                changes.append(.rem((i+1)..<(i + lines.count), j, lines))
+                i += lines.count
+            case .none(let lines):
+                i += lines.count
+                j += lines.count
+            }
+        }
 
         return changes
+    }
+    
+    var debugDescription: String {
+        changes.map {"\($0)"}.joined(separator: "\n")
     }
 }
 
