@@ -95,13 +95,13 @@ func printDiff(_ x: [String], _ y: [String]) {
     printDiff(c, x, y, x.count, y.count)
 }
 
-struct UnifiedDiff: CustomDebugStringConvertible {
-    enum Change: CustomDebugStringConvertible {
+public struct UnifiedDiff: CustomDebugStringConvertible {
+    public enum Change: CustomDebugStringConvertible {
         case none(String)
         case add(String)
         case rem(String)
         
-        var debugDescription: String {
+        public var debugDescription: String {
             switch self {
             case .none(let text):
                 return " \(text)"
@@ -113,14 +113,14 @@ struct UnifiedDiff: CustomDebugStringConvertible {
         }
     }
 
-    let changes: [Change]
+    public let changes: [Change]
     
-    var debugDescription: String {
+    public var debugDescription: String {
         changes.map {String(describing: $0)}.joined(separator: "\n")
     }
 }
 
-extension UnifiedDiff.Change {
+public extension UnifiedDiff.Change {
     var caseName: String {
         switch self {
         case .none: return "none"
@@ -173,16 +173,16 @@ extension GroupedUnifiedDiff.Change {
 }
 
 
-struct GroupedUnifiedDiff {
-    enum Change {
+public struct GroupedUnifiedDiff {
+    public enum Change {
         case none([String])
         case add([String])
         case rem([String])
     }
     
-    let changes: [Change]
+    public let changes: [Change]
     
-    init(_ diff: UnifiedDiff) {
+    public init(_ diff: UnifiedDiff) {
         changes = Self.groupChanges(diff.changes)
     }
     
@@ -200,13 +200,13 @@ struct GroupedUnifiedDiff {
     }
 }
 
-struct NormalDiff: CustomDebugStringConvertible {
-    enum Change: CustomDebugStringConvertible {
+public struct NormalDiff: CustomDebugStringConvertible {
+    public enum Change: CustomDebugStringConvertible {
         case add(Int, Range<Int>, [String])
         case rem(Range<Int>, Int, [String])
         //case change(Range<Int>, Range<Int>)
         
-        var debugDescription: String {
+        public var debugDescription: String {
             switch self {
             case let .add(i, r, lines):
                 return "\(i)a\(r.lowerBound),\(r.upperBound)\n\(lines.map {"> \($0)"}.joined(separator: "\n"))"
@@ -216,21 +216,21 @@ struct NormalDiff: CustomDebugStringConvertible {
         }
     }
     
-    let changes: [Change]
+    public let changes: [Change]
     
-    init(_ diff: GroupedUnifiedDiff) {
+    public init(_ diff: GroupedUnifiedDiff) {
         self.changes = Self.computeChanges(diff)
     }
     
-    init(_ diff: UnifiedDiff) {
+    public init(_ diff: UnifiedDiff) {
         self.init(GroupedUnifiedDiff(diff))
     }
     
-    init(_ x: [String], _ y: [String]) {
+    public init(_ x: [String], _ y: [String]) {
         self.init(diff(x, y))
     }
     
-    init(_ x: URL, _ y: URL) throws {
+    public init(_ x: URL, _ y: URL) throws {
         try self.init(lines(x.path), lines(y.path))
     }
     
@@ -256,7 +256,7 @@ struct NormalDiff: CustomDebugStringConvertible {
         return changes
     }
     
-    var debugDescription: String {
+    public var debugDescription: String {
         changes.map {"\($0)"}.joined(separator: "\n")
     }
 }
@@ -274,7 +274,7 @@ func diff(_ c: LcsLength, _ x: [String], _ y: [String], _ i: Int, _ j: Int, _ ch
     }
 }
 
-func diff(_ left: [String], _ right: [String]) -> UnifiedDiff {
+public func diff(_ left: [String], _ right: [String]) -> UnifiedDiff {
     let c = lcsLength(x: left, y: right)
     var changes: [UnifiedDiff.Change] = []
     
